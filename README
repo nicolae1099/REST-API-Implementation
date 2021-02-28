@@ -1,0 +1,82 @@
+Nitu Nicolae Iulian 321CA Tema3
+
+M-am folosit de nlohmann pt a formata mai usor datele trimise catre server si ca
+sa le trimit intr-un mod structurat.
+Am mai folosit functia dump() din libraria de json pt a face din json un string,
+aveam nevoie de string la compute_post_request/compute_get_request.
+
+Fiecare comanda afiseaza tot continutul raspunsului primit de server.
+In fiecare comanda am open_connection() inainte de a da send_to_server,
+si mai am close_connection dupa receive_from_server. Am ales aceasta abordare
+pt situatia in care conexiunea client-server s-ar putea inchide unexpected.
+
+O sa iau fiecare comanda in parte si o sa explic detaliile de implementare
+*register
+		Am parsat datele de la stdin intr-un json care il trimit la server
+
+		Am folosit un while(1) in comanda de register pentru a prompta userul
+	din nou si din nou, pana cand baga input valid de trimis la server.
+	Daca primesc 429 Too Many Requests de la server, afisez un mesaj corespunzator
+	si ma opresc din a prompta user ul pt input.
+
+		Daca primesc un mesaj de eroare de la server, tratez situatia cu un mesaj
+	si repromptez userul pt alte credentiale.
+
+		Daca totul merge bine, afisez ("Succesfull register");
+
+*login 
+			Ma folosesc de variabila acces_to_login ca sa verific daca userul
+		e deja logat. 
+
+			Daca userul s-a autentificat si apoi mai vrea sa dea din nou un 
+		'login',acest lucru nu va fi permis. Afisez un mesaj pt aceasta situatie
+		si indrum userul sa se delogheze mai intai.
+
+			Caut cookie ul cautand dupa stringul "connect.sid=" si salvez
+		acest cookie pentru task urile urmatoare (enter_library).
+			Daca primesc eroare de la server, afisez mesaj.
+			Daca totul merge bine, afisez mesaj.
+
+*enter_library
+			Daca un user vrea sa dea de mai multe ori consecutiv enter_library,
+		de fiecare data se va genera un jwtoken nou.
+
+			Ca un user sa aiba acces la librarie, prima oara trebuie sa fie logat.
+		Daca nu este logat, il indrum sa se  logheze prima data si abia apoi sa
+		dea enter_library.
+			
+			Tokenul il gasesc dupa keywordul "token" si il pastrez ca sa demonstrez
+		ca am acces la librarie.
+
+*get_books
+			Daca userul are jwtoken valid, serverul va intoarce lista de carti
+		(+ headerele) si afisez mesaj.
+			Daca tokenul nu exista atunci indrum userul sa obtina acces prin
+		tastarea comenzii "enter_library".
+
+*get_book
+			Daca userul n-are acces la librarie, trebuie sa dea enter_library
+		prima data, pt a se genera tokenul.
+			Daca are acces,promptez pt ID.
+
+			Daca serverul intoarce mesaj "404 Not found" afisez mesaj friendly.
+
+*add_book
+			Am tratat cazul in care un title/author/genre/publisher
+		poate fi "Amintiri din copilarie" si nu doar un singur string si
+		le consider valide.
+
+			Userul este repromptat sa reintroduca id uri, pana introduce unul valid,
+		fara a fi nevoie sa reintroduca din nou title/author/genre/publisher.
+		Cand va introduce un ID valid, comanda se va trimite cu succes la server
+
+*logout
+			Afisez mesaj de delogare si setez pe NULL variabilele jwt (tokenul),
+		cookie si access_to_login devine fals. 
+			Am tratat cazul in care un user se poate deconecta doar daca
+		a fost conectat inainte, altfel mesaj eroare
+		  Un alt caz tratat este acela ca un user nu va mai putea avea acces
+		la librarie sau sa adauge/stearga/primeasca carti, dupa ce da logout.
+
+*exit 
+			Ies din while(1) si inchid programul.
